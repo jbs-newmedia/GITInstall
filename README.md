@@ -1,5 +1,5 @@
 # GITInstall
-Install releases from github/gitlan with php. comes with uninstaller.
+Install releases from GitHub/GitLab with php. comes with uninstaller.
 
 ```
 use \JBSNewMedia\GitInstall\Installer;
