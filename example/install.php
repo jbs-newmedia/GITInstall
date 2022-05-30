@@ -17,6 +17,9 @@ $Installer->setUrl('https://api.github.com/repos/jbs-newmedia/GITInstall/release
 $Installer->setRelease('stable');
 $Installer->setRemotePath('src');
 $Installer->setLocalPath('../src');
+/* info | execute | remove */
 $Installer->setAction('execute');
+
+print_r($Installer->runEngine());
 
 ?>
