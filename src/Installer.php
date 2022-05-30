@@ -677,6 +677,28 @@ class Installer {
 		}
 
 		$load=false;
+
+		if (in_array($this->getGit(), ['github'])) {
+			foreach ($remote_info as $_git) {
+				if ($this->getRelease()=='stable') {
+					if (($_git['draft']==false)&&($_git['prerelease']==false)) {
+						$this->setRemoteVersion($_git['tag_name']);
+						$this->setGitZipUrl($_git['zipball_url']);
+						$load=true;
+						break;
+					}
+				}
+				if ($this->getRelease()=='prerelease') {
+					if (($_git['draft']==false)&&($_git['prerelease']==true)) {
+						$this->setRemoteVersion($_git['tag_name']);
+						$this->setGitZipUrl($_git['zipball_url']);
+						$load=true;
+						break;
+					}
+				}
+			}
+		}
+
 		if (in_array($this->getGit(), ['gitlab'])) {
 			foreach ($remote_info as $_git) {
 				if ($this->getRelease()=='stable') {
