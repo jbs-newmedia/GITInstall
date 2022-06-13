@@ -14,6 +14,8 @@ $Installer->setUrl('https://api.github.com/repos/jbs-newmedia/GITInstall/release
 $Installer->setRelease('stable');
 $Installer->setRemotePath('src');
 $Installer->setLocalPath('../src');
+//$Installer->setIgnoredFiles(['file.ext', 'dir/file.ext']);
+//$Installer->setIgnoredDirectories(['dir/', 'dir/subdir/']);
 /* info | execute | remove */
 $Installer->setAction('execute');
 

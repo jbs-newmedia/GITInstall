@@ -67,6 +67,16 @@ class Installer {
 	/**
 	 * @var array
 	 */
+	protected array $ignored_files=[];
+
+	/**
+	 * @var array
+	 */
+	protected array $ignored_directories=[];
+
+	/**
+	 * @var array
+	 */
 	protected array $files=[];
 
 	/**
@@ -327,6 +337,34 @@ class Installer {
 	 */
 	public function getRemotePath():string {
 		return $this->remote_path;
+	}
+
+	/**
+	 * @param array $ignored_files
+	 */
+	public function setIgnoredFiles(array $ignored_files):void {
+		$this->ignored_files=$ignored_files;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getIgnoredFiles():array {
+		return $this->ignored_files;
+	}
+
+	/**
+	 * @param array $ignored_directories
+	 */
+	public function setIgnoredDirectories(array $ignored_directories):void {
+		$this->ignored_directories=$ignored_directories;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getIgnoredDirectories():array {
+		return $this->ignored_directories;
 	}
 
 	/**
@@ -768,32 +806,33 @@ class Installer {
 			$directories_local=$this->getDirectories();
 			for ($i=0; $i<$this->getZipArchive()->count(); $i++) {
 				$stat=$this->getZipArchive()->statIndex($i);
-				if (($git_path=='')||(strpos($stat['name'], $git_path)===0)) {
+				if ($i==0) {
+					$git_path=$stat['name'];
+					$git_base_path=$stat['name'];
+					if ($this->getRemotePath()!='') {
+						$git_path.=$this->getRemotePath();
+					}
+				}
+				$name=str_replace([$git_path.DIRECTORY_SEPARATOR, $git_base_path], ['', ''], $stat['name']);
+				if ((($git_path=='')||(strpos($stat['name'], $git_path)===0))&&($this->checkIgnoredDir($name)!==true)) {
 					if (($stat['crc']==0)&&($stat['size']==0)) {
-						if ($i==0) {
-							$git_path=$stat['name'];
-							$git_base_path=$stat['name'];
-							if ($this->getRemotePath()!='') {
-								$git_path.=$this->getRemotePath();
-							}
+						if (is_dir($this->getLocalRealPath().$name)!==true) {
+							mkdir($this->getLocalRealPath().$name, $this->getChmodDir(), true);
 						}
-						$dir=str_replace([$git_path.DIRECTORY_SEPARATOR, $git_base_path], ['', ''], $stat['name']);
-						if (is_dir($this->getLocalRealPath().$dir)!==true) {
-							mkdir($this->getLocalRealPath().$dir, $this->getChmodDir(), true);
+						if (isset($directories_local[$this->getLocalRealPath().$name])) {
+							unset($directories_local[$this->getLocalRealPath().$name]);
 						}
-						if (isset($directories_local[$this->getLocalRealPath().$dir])) {
-							unset($directories_local[$this->getLocalRealPath().$dir]);
-						}
-						$directories[$this->getLocalRealPath().$dir]='';
+						$directories[$this->getLocalRealPath().$name]='';
 					} else {
 						$data=$this->getZipArchive()->getFromIndex($i);
-						$dir=str_replace($git_path.DIRECTORY_SEPARATOR, '', $stat['name']);
-						file_put_contents($this->getLocalRealPath().$dir, $data);
-						@chmod($this->getLocalRealPath().$dir, $this->getChmodFile());
-						if (isset($files_local[$this->getLocalRealPath().$dir])) {
-							unset($files_local[$this->getLocalRealPath().$dir]);
+						if (!in_array($name, $this->getIgnoredFiles())) {
+							file_put_contents($this->getLocalRealPath().$name, $data);
+							@chmod($this->getLocalRealPath().$name, $this->getChmodFile());
 						}
-						$files[$this->getLocalRealPath().$dir]='';
+						if (isset($files_local[$this->getLocalRealPath().$name])) {
+							unset($files_local[$this->getLocalRealPath().$name]);
+						}
+						$files[$this->getLocalRealPath().$name]='';
 					}
 				}
 			}
@@ -877,6 +916,20 @@ class Installer {
 
 			return preg_replace("/\/+/", "/", "$a/$b");
 		});
+	}
+
+	/**
+	 * @param string $dir
+	 * @return bool
+	 */
+	protected function checkIgnoredDir(string $dir):bool {
+		foreach ($this->getIgnoredDirectories() as $ignored_dir) {
+			if (strpos($dir, $ignored_dir)===0) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }
