@@ -42,7 +42,12 @@ class Installer {
 	/**
 	 * @var string
 	 */
-	protected string $url='';
+	protected string $release_url='';
+
+	/**
+	 * @var string
+	 */
+	protected string $download_url='';
 
 	/**
 	 * @var string
@@ -243,16 +248,46 @@ class Installer {
 
 	/**
 	 * @param string $url
+	 * @deprecated
 	 */
 	public function setUrl(string $url):void {
-		$this->url=$url;
+		$this->setReleaseUrl($url);
+	}
+
+	/**
+	 * @return string
+	 * @deprecated
+	 */
+	public function getUrl():string {
+		return $this->getReleaseUrl();
+	}
+
+	/**
+	 * @param string $release_url
+	 */
+	public function setReleaseUrl(string $release_url):void {
+		$this->release_url=$release_url;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getUrl():string {
-		return $this->url;
+	public function getReleaseUrl():string {
+		return $this->release_url;
+	}
+
+	/**
+	 * @param string $download_url
+	 */
+	public function setDownloadUrl(string $download_url):void {
+		$this->download_url=$download_url;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDownloadUrl():string {
+		return $this->download_url;
 	}
 
 	/**
@@ -623,6 +658,14 @@ class Installer {
 	}
 
 	/**
+	 * @param string $tag_name
+	 * @return string
+	 */
+	protected function getGitLabDownloadUrl(string $tag_name):string {
+		return str_replace('{tag_name}', $tag_name, $this->getDownloadUrl());
+	}
+
+	/**
 	 * @return void
 	 */
 	public function runEngine():array {
@@ -750,7 +793,6 @@ class Installer {
 					$headers[]='PRIVATE-TOKEN: '.$this->getToken();
 					curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 				}
-
 				curl_setopt($ch, CURLOPT_URL, $url);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -772,7 +814,7 @@ class Installer {
 	 * @return bool
 	 */
 	public function setInformation():bool {
-		$remote_info=json_decode($this->getUrlData($this->getUrl()), true);
+		$remote_info=json_decode($this->getUrlData($this->getReleaseUrl()), true);
 		if (!is_array($remote_info)) {
 			$this->setError(true);
 			$this->setErrorString('error loading json (remote)');
@@ -837,12 +879,12 @@ class Installer {
 			$this->initRemoteVersionList();
 			foreach ($remote_info as $_git) {
 				if ($this->getRelease()=='stable') {
-					if (($_git['upcoming_release'])&&($_git['upcoming_release']==false)) {
+					if ((isset($_git['upcoming_release']))&&($_git['upcoming_release']==false)) {
 						if (($i==0)||($_git['tag_name']==$this->getInstallVersion())) {
 							$this->setRemoteVersion($_git['tag_name']);
 							foreach ($_git['assets']['sources'] as $source) {
 								if ($source['format']=='zip') {
-									$this->setGitZipUrl($source['url']);
+									$this->setGitZipUrl($this->getGitLabDownloadUrl($_git['tag_name']));
 									$load=true;
 									break;
 								}
@@ -851,7 +893,7 @@ class Installer {
 						foreach ($_git['assets']['sources'] as $source) {
 							if ($source['format']=='zip') {
 								$this->addRemoteVersionList($_git['tag_name'], $source['url']);
-								$this->setGitZipUrl($source['url']);
+								$this->setGitZipUrl($this->getGitLabDownloadUrl($_git['tag_name']));
 								$load=true;
 								break;
 							}
@@ -863,12 +905,12 @@ class Installer {
 					}
 				}
 				if ($this->getRelease()=='prerelease') {
-					if (($_git['upcoming_release'])&&($_git['upcoming_release']==true)) {
+					if ((isset($_git['upcoming_release']))&&($_git['upcoming_release']==true)) {
 						if ($i==0) {
 							$this->setRemoteVersion($_git['tag_name']);
 							foreach ($_git['assets']['sources'] as $source) {
 								if ($source['format']=='zip') {
-									$this->setGitZipUrl($source['url']);
+									$this->setGitZipUrl($this->getGitLabDownloadUrl($_git['tag_name']));
 									$load=true;
 									break;
 								}
@@ -877,7 +919,7 @@ class Installer {
 						foreach ($_git['assets']['sources'] as $source) {
 							if ($source['format']=='zip') {
 								$this->addRemoteVersionList($_git['tag_name'], $source['url']);
-								$this->setGitZipUrl($source['url']);
+								$this->setGitZipUrl($this->getGitLabDownloadUrl($_git['tag_name']));
 								$load=true;
 								break;
 							}
