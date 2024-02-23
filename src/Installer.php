@@ -8,6 +8,7 @@
  * @package GITInstall
  * @link https://oswframe.com
  * @license MIT License
+ * @version 1.3.1
  */
 
 namespace JBSNewMedia\GitInstall;
@@ -871,6 +872,20 @@ class Installer {
 						}
 					}
 				}
+				if ($this->getRelease()=='commit') {
+					if ((isset($_git['sha']))&&(isset($_git['html_url']))) {
+						if (($i==0)||($_git['sha']==$this->getInstallVersion())) {
+							$this->setRemoteVersion($_git['sha']);
+							$this->setGitZipUrl(str_replace('/commit/', '/archive/', $_git['html_url']).'.zip');
+							$load=true;
+						}
+						$this->addRemoteVersionList($_git['sha'], str_replace('/commit/', '/archive/', $_git['html_url']).'.zip');
+						$i++;
+						if ($i>=5) {
+							break;
+						}
+					}
+				}
 			}
 		}
 
@@ -929,6 +944,9 @@ class Installer {
 							break;
 						}
 					}
+				}
+				if ($this->getRelease()=='commit') {
+					die('not implemented yet');
 				}
 			}
 		}

@@ -18,7 +18,7 @@ $Installer->setRelease('stable');
 $Installer->setRemotePath('src');
 $Installer->setLocalPath('../src');
 /* info | execute | remove */
-$Installer->setAction('execute');
+$Installer->setAction('info');
 
 print_r($Installer->runEngine());
 
