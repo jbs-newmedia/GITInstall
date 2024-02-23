@@ -961,7 +961,7 @@ class Installer {
 			return false;
 		}
 
-		if (version_compare($this->getLocalVersion(), $this->getRemoteVersion(), '<')) {
+		if ($this->getLocalVersion() !== $this->getRemoteVersion()) {
 			$this->setExecutable(true);
 		}
 

@@ -33,6 +33,7 @@ if ($tag==='') {
 	$Installer->setAction('info');
 } else {
 	$Installer->setAction('execute');
+	$Installer->runEngine();
 	header('Location: '.$file);
 }
 $info=$Installer->runEngine();
